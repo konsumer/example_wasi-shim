@@ -1,0 +1,14 @@
+{
+  "name": "browser_wasi_shim_with_fs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "modules",
+  "scripts": {
+    "start": "live-server docs"
+  },
+  "devDependencies": {
+    "@bytecodealliance/componentize-js": "^0.13.0",
+    "@bytecodealliance/jco": "^1.7.0",
+    "live-server": "^1.2.2"
+  }
+}

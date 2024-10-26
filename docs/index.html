@@ -1,0 +1,48 @@
+<head>
+  <title>wasi-shim example</title>
+</head>
+<body>
+
+<script type="importmap">
+  {
+    "imports": {
+      "@bjorn3/browser_wasi_shim": "https://esm.sh/@bjorn3/browser_wasi_shim",
+      "@zenfs/core": "https://esm.sh/@zenfs/core",
+      "@zenfs/zip": "https://esm.sh/@zenfs/zip"
+    }
+  }
+</script>
+
+View the console, to see it working.
+
+<script type="module">
+import { configure} from '@zenfs/core'
+import { Zip } from '@zenfs/zip'
+import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "@bjorn3/browser_wasi_shim"
+import getPreopens from './get_preopens.js'
+
+await configure({
+  mounts: {
+    '/zip': { backend: Zip, data: await fetch('example.zip').then(r => r.arrayBuffer()) }
+  }
+})
+
+let args = ["bin", "arg1", "arg2"]
+let env = ["COOL=yeah!"]
+let fds = [
+  new OpenFile(new File([])), // stdin
+  ConsoleStdout.lineBuffered(msg => console.log(msg)),
+  ConsoleStdout.lineBuffered(msg => console.warn(msg)),
+  ...(await getPreopens())
+]
+
+let wasi = new WASI(args, env, fds, { debug: false });
+let wasm = await WebAssembly.compileStreaming(fetch("example.wasm"));
+let inst = await WebAssembly.instantiate(wasm, {
+  wasi_snapshot_preview1: wasi.wasiImport
+})
+wasi.start(inst)
+
+</script>
+
+</body>
